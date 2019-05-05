@@ -13,24 +13,21 @@ object SudokuSolver extends App {
   }
 
 
-  def isValidMove(a: => Array[Array[Int]], row: Int, col: Int, candidate: Int): Boolean = {
+  def isValidMove(a: Array[Array[Int]], row: Int, col: Int, candidate: Int): Boolean = {
     var i = 0;
     var j = 0;
     var limi = 0;
     var limj = 0;
-    var found = false;
     do {
       if (a(row)(i) == candidate) {
-        found = true;
-        return !found;
+        return false;
       }
       i = i + 1;
     } while (i < 9)
     i = 0;
     do {
       if (a(i)(col) == candidate) {
-        found = true;
-        return !found;
+        return false;
       }
       i = i + 1;
     } while (i < 9)
@@ -43,8 +40,7 @@ object SudokuSolver extends App {
       j = 3 * (col / 3);
       do {
         if (a(i)(j) == candidate) {
-          found = true;
-          return !found;
+          return false;
         }
         j = j + 1;
       } while (j < limj)
@@ -53,39 +49,38 @@ object SudokuSolver extends App {
     return true;
   }
 
-  def recurse(a: => Array[Array[Int]], row: => Int, col: => Int): Array[Array[Int]] = {
+  def bound(row: Int, col: Int): (Int, Int) = {
+    if ((col + 1) > 8) {
+      (row + 1, 0)
+    } else {
+      (row, col + 1)
+    }
+  }
+
+  def recurse(a: Array[Array[Int]], row: Int, col: Int): Array[Array[Int]] = {
     var i = 1;
-    var b: Array[Array[Int]] = null
     var sol: Array[Array[Int]] = null
 
-    var mycol = col
-    var myrow = row
-
-    if (a(myrow)(mycol) != 0) {
-      mycol = mycol + 1
-      if (mycol >= 9) {
-        mycol = 0; myrow = myrow + 1
-      }
+    if (a(row)(col) != 0) {
+      val (myrow, mycol) = bound(row, col)
       if (myrow >= 9) {
+        // solution found
         return a
       } else {
-        b = a.clone()
-        return recurse(b, myrow, mycol)
+        return recurse(a, myrow, mycol)
       }
     } else {
       do {
         if (isValidMove(a, row, col, i)) {
-          // println("recursing " + row + ", " + col + ": " + i)
-          b = a.clone()
-          b(row)(col) = i
-          sol = recurse(b, row, col)
+          a(row)(col) = i
+          sol = recurse(a, row, col)
           if (sol != null) {
-            return sol;
+            return a;
           }
         }
         i = i + 1
       } while (i < 10)
-      a(myrow)(mycol) = 0
+      a(row)(col) = 0
       return null;
     }
   }
