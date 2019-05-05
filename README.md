@@ -27,3 +27,9 @@ Where input is of the form:
 -6-9-28--
 
 ```
+
+## TODO
+
+- Add unit tests
+- Fix unnecessary copies
+- Refactor to code to be more idiomatic for Scala
