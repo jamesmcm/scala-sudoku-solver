@@ -1,6 +1,7 @@
+package sudoku
 import scala.io.Source
 
-object SudokuSolver extends App {
+object Main extends App {
   var a: Array[Array[Int]] = null
   if (args.length == 0) {
     println("Missing input filename")
@@ -101,4 +102,3 @@ object SudokuSolver extends App {
     return a
   }
 }
-

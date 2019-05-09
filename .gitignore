@@ -1,2 +1,4 @@
 *.class
 .idea
+target
+project/target
