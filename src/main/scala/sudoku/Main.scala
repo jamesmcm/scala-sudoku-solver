@@ -1,18 +1,44 @@
+// Copyright (C) 2011-2012 the original author or authors.
+// See the LICENCE.txt file distributed with this work for additional
+// information regarding copyright ownership.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package sudoku
 import scala.io.Source
 
 object Main extends App {
-  var a: Array[Array[Int]] = null
+  var a: String = null
   if (args.length == 0) {
     println("Missing input filename")
     System.exit(1)
   }
-  a = loadSudoku(args(0))
-  a = recurse(a, 0, 0)
-  if (a != null) {
-    a foreach { row => row foreach print; println }
-  }
+  a = solveSudoku(args(0))
+  print(a)
 
+
+  def solveSudoku(filename: String): String ={
+    var m: Array[Array[Int]] = null
+    var s: String = ""
+    m = recurse(loadSudoku(filename), 0,0)
+
+    if (m != null) {
+      return m.map((x:Array[Int]) => x.mkString("")).mkString("\n")
+    }
+    else {
+      return null
+    }
+  }
 
   def isValidMove(a: Array[Array[Int]], row: Int, col: Int, candidate: Int): Boolean = {
     var i = 0;
