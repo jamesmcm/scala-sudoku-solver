@@ -18,9 +18,9 @@ package sudoku
 import scala.io.Source
 
 object Main extends App {
-  var a: String = null
+  var a: String = ""
   if (args.length == 0) {
-    println("Missing input filename")
+    throw new IllegalArgumentException("Missing input filename")
     System.exit(1)
   }
   a = solveSudoku(args(0))
@@ -28,103 +28,78 @@ object Main extends App {
 
 
   def solveSudoku(filename: String): String ={
-    var m: Array[Array[Int]] = null
-    var s: String = ""
+    var m: Option[Array[Array[Int]]] = None
     m = recurse(loadSudoku(filename), 0,0)
+    m match {
+      case None => throw new IllegalStateException("No valid solution")
+      case Some(solution) => solution.map((x:Array[Int]) => x.mkString("")).mkString("\n")
+    }
+  }
 
-    if (m != null) {
-      return m.map((x:Array[Int]) => x.mkString("")).mkString("\n")
-    }
-    else {
-      return null
-    }
+  def getBoxBounds(row: Int, col: Int): (Int, Int) = {
+    (3*(row/3), 3*(col/3))
   }
 
   def isValidMove(a: Array[Array[Int]], row: Int, col: Int, candidate: Int): Boolean = {
-    var i = 0;
-    var j = 0;
-    var limi = 0;
-    var limj = 0;
-    do {
-      if (a(row)(i) == candidate) {
-        return false;
-      }
-      i = i + 1;
-    } while (i < 9)
-    i = 0;
-    do {
-      if (a(i)(col) == candidate) {
-        return false;
-      }
-      i = i + 1;
-    } while (i < 9)
-
-    i = 3 * (row / 3);
-    j = 3 * (col / 3);
-    limi = i + 3
-    limj = j + 3
-    do {
-      j = 3 * (col / 3);
-      do {
-        if (a(i)(j) == candidate) {
-          return false;
-        }
-        j = j + 1;
-      } while (j < limj)
-      i = i + 1
-    } while (i < limi)
-    return true;
+    val (i, j) = getBoxBounds(row, col)
+    !(a(row)
+      .map((x: Int) => x == candidate)
+      .foldLeft(false)((x:Boolean, y:Boolean) => x | y) |
+    a.map((x: Array[Int]) => x(col))
+      .map((x: Int) => x == candidate)
+      .foldLeft(false)((x:Boolean, y:Boolean) => x | y) |
+    a.slice(i, i + 3).flatMap((x: Array[Int]) => x.slice(j, j + 3))
+      .map((x: Int) => x == candidate)
+      .foldLeft(false)((x:Boolean, y:Boolean) => x | y))
   }
 
   def bound(row: Int, col: Int): (Int, Int) = {
-    if ((col + 1) > 8) {
-      (row + 1, 0)
-    } else {
-      (row, col + 1)
+    (row, col) match {
+      case (_, 8) => (row + 1, 0)
+      case _ => (row, col + 1)
     }
   }
 
-  def recurse(a: Array[Array[Int]], row: Int, col: Int): Array[Array[Int]] = {
-    var i = 1;
-    var sol: Array[Array[Int]] = null
+  def move(a: Array[Array[Int]], row: Int, col: Int): Option[Array[Array[Int]]] = {
+    val (newrow, newcol) = bound(row, col)
+    (newrow, newcol) match {
+      case (9, _) => Some(a)
+      case _ => recurse(a, newrow, newcol)
+    }
+  }
 
-    if (a(row)(col) != 0) {
-      val (myrow, mycol) = bound(row, col)
-      if (myrow >= 9) {
-        // solution found
-        return a
-      } else {
-        return recurse(a, myrow, mycol)
-      }
-    } else {
-      do {
-        if (isValidMove(a, row, col, i)) {
-          a(row)(col) = i
-          sol = recurse(a, row, col)
-          if (sol != null) {
-            return a;
-          }
-        }
-        i = i + 1
-      } while (i < 10)
-      a(row)(col) = 0
-      return null;
+  def substitute(a: Array[Array[Int]], row: Int, col: Int, candidate: Int): Option[Array[Array[Int]]] = {
+    var sol: Option[Array[Array[Int]]] = None
+    val b = a.map(_.clone)
+
+    b(row)(col) = candidate
+    sol = recurse(b, row, col)
+    sol
+  }
+
+  def recurse(a: Array[Array[Int]], row: Int, col: Int): Option[Array[Array[Int]]] = {
+    a(row)(col) match {
+      case 0 => (1 to 9).filter(isValidMove(a, row, col, _))
+        .map((x: Int) => substitute(a, row, col, x))
+        .find(_.isDefined).flatten
+      case _ => move(a, row, col)
     }
   }
 
 
   def loadSudoku(filename: String): Array[Array[Int]] = {
     val a = Array.ofDim[Int](9, 9)
-    var i = 0;
-    var form = (x: String) => if (x == "-") "0" else x;
+    var i = 0
+    val form = (x: String) => if (x == "-") "0" else x
+    val source = scala.io.Source.fromFile(filename)
 
-    for (line <- Source.fromFile(filename).getLines) {
+    for (line <- source.getLines) {
       if (i < 9) {
         a(i) = line.split("").map(form).map(_.toInt)
       }
       i = i + 1
-
     }
-    return a
+    source.close()
+    a
   }
 }
