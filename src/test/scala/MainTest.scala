@@ -20,12 +20,12 @@ class MainTest extends FunSuite {
       test("Main.recurse_evil") {
           val source = io.Source.fromFile("src/test/data/evil8104462993_solution.txt")
           val solution = try source.mkString finally source.close()
-          assert(sudoku.Main.solveSudoku("src/test/data/evil8104462993.txt") == solution)
+          assert(sudoku.Main.solveSudoku("src/test/data/evil8104462993.txt") === solution)
       }
 
   test("Main.recurse_hard") {
     val source = io.Source.fromFile("src/test/data/hard160820349_solution.txt")
     val solution = try source.mkString finally source.close()
-    assert(sudoku.Main.solveSudoku("src/test/data/hard160820349.txt") == solution)
+    assert(sudoku.Main.solveSudoku("src/test/data/hard160820349.txt") === solution)
   }
 }

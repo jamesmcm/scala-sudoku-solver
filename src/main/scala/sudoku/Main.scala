@@ -15,23 +15,25 @@
 // limitations under the License.
 
 package sudoku
-import scala.io.Source
+
 
 object Main extends App {
-  var a: String = ""
-  if (args.length == 0) {
-    throw new IllegalArgumentException("Missing input filename")
+
+  @SuppressWarnings(Array("org.wartremover.warts.Equals"))
+  implicit final class AnyOps[A](self: A) {
+   def ===(other: A): Boolean = self == other
+}
+
+  if (args.length === 0) {
+    println("Missing filename argument")
     System.exit(1)
   }
-  a = solveSudoku(args(0))
-  print(a)
+  print(solveSudoku(args(0)))
 
 
   def solveSudoku(filename: String): String ={
-    var m: Option[Array[Array[Int]]] = None
-    m = recurse(loadSudoku(filename), 0,0)
-    m match {
-      case None => throw new IllegalStateException("No valid solution")
+    recurse(loadSudoku(filename), 0,0) match {
+      case None => "No valid solution"
       case Some(solution) => solution.map((x:Array[Int]) => x.mkString("")).mkString("\n")
     }
   }
@@ -43,13 +45,13 @@ object Main extends App {
   def isValidMove(a: Array[Array[Int]], row: Int, col: Int, candidate: Int): Boolean = {
     val (i, j) = getBoxBounds(row, col)
     !(a(row)
-      .map((x: Int) => x == candidate)
+      .map((x: Int) => x === candidate)
       .foldLeft(false)((x:Boolean, y:Boolean) => x | y) |
     a.map((x: Array[Int]) => x(col))
-      .map((x: Int) => x == candidate)
+      .map((x: Int) => x === candidate)
       .foldLeft(false)((x:Boolean, y:Boolean) => x | y) |
     a.slice(i, i + 3).flatMap((x: Array[Int]) => x.slice(j, j + 3))
-      .map((x: Int) => x == candidate)
+      .map((x: Int) => x === candidate)
       .foldLeft(false)((x:Boolean, y:Boolean) => x | y))
   }
 
@@ -69,12 +71,10 @@ object Main extends App {
   }
 
   def substitute(a: Array[Array[Int]], row: Int, col: Int, candidate: Int): Option[Array[Array[Int]]] = {
-    var sol: Option[Array[Array[Int]]] = None
     val b = a.map(_.clone)
 
     b(row)(col) = candidate
-    sol = recurse(b, row, col)
-    sol
+    recurse(b, row, col)
   }
 
   def recurse(a: Array[Array[Int]], row: Int, col: Int): Option[Array[Array[Int]]] = {
@@ -88,18 +88,9 @@ object Main extends App {
 
 
   def loadSudoku(filename: String): Array[Array[Int]] = {
-    val a = Array.ofDim[Int](9, 9)
-    var i = 0
-    val form = (x: String) => if (x == "-") "0" else x
+    val form = (x: String) => if (x === "-") "0" else x
     val source = scala.io.Source.fromFile(filename)
 
-    for (line <- source.getLines) {
-      if (i < 9) {
-        a(i) = line.split("").map(form).map(_.toInt)
-      }
-      i = i + 1
-    }
-    source.close()
-    a
+    try source.getLines.map((x: String) => x.split("").map(form).map(_.toInt)).toArray finally source.close()
   }
 }
