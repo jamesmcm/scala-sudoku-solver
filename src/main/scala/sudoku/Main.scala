@@ -28,7 +28,7 @@ object Main extends App {
     println("Missing filename argument")
     System.exit(1)
   }
-  print(solveSudoku(args(0)))
+  println(solveSudoku(args(0)))
 
 
   def solveSudoku(filename: String): String ={

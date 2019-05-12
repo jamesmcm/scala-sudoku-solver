@@ -5,13 +5,13 @@ Simple 9x9 Sudoku solver in Scala
 Build:
 
 ```bash
-scalac sudoku.scala
+sbt compile
 ```
 
 Run:
 
 ```bash
-scala SudokuSolver data/evil8104462993.txt
+sbt "run ./src/test/data/evil8104462993.txt"
 ```
 
 Where input is of the form:
@@ -25,11 +25,10 @@ Where input is of the form:
 ----4----
 -----3674
 -6-9-28--
-
 ```
 
-## TODO
+Run unit tests:
 
-- Add unit tests
-- Fix unnecessary copies
-- Refactor to code to be more idiomatic for Scala
+```bash
+sbt test
+```
